@@ -12,33 +12,21 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-
+    
+    Color couleur[8] = { RED, GREEN, BLUE, WHITE, BLACK, YELLOW, CYAN, MAGENTA };
+    
     try {
 
-        ws2812b ledRGB(1); //1 pixel LED RGB
-
+        WS2812b ledRGB(1); //1 pixel LED RGB
+        
+        int i = 0;
         while (1) {
             //RGB Blink.
-            ledRGB.setPixelColor(0, 5, 0, 0); // rouge
+            ledRGB.setPixelColor(0, couleur[i], 0.1); 
             ledRGB.show();
-            cout << "rouge" << endl;
             sleep(3);
-
-            ledRGB.setPixelColor(0, 2, 2, 0); // jaune
-            ledRGB.show();
-            cout << "jaune" << endl;
-            sleep(3);
-
-            ledRGB.setPixelColor(0, 0, 5, 0); // vert
-            ledRGB.show();
-            cout << "vert" << endl;
-            sleep(3);
-
-            ledRGB.setPixelColor(0, 0, 0, 5); // Bleu
-            ledRGB.show();
-            cout << "bleu" << endl;
-            sleep(3);
-
+            i++;
+            if (i == 8) i=0;
         }
     } catch (const std::runtime_error &e) {
 

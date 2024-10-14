@@ -7,15 +7,14 @@
 
 #include "ws2812b.h"
 
-ws2812b::ws2812b(unsigned int numLED):
-numLEDs(numLED)
-{
+WS2812b::WS2812b(unsigned int numLED) :
+numLEDs(numLED) {
     if (numLED > LED_BUFFER_LENGTH) {
-        
+
         throw std::runtime_error("Exception to constructor ws2812b");
-        
+
     }
-    
+
     initHardware();
     clearLEDBuffer();
 }
@@ -25,7 +24,7 @@ numLEDs(numLED)
 // See: http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka3750.html,
 // The pointer addresses a 32-bit WORD, not an 8-bit byte. (So, addresses may seem 4x too small!)
 
-volatile unsigned *ws2812b::mapRegisterMemory(int base) {
+volatile unsigned *WS2812b::mapRegisterMemory(int base) {
     static int mem_fd = 0;
     char *mem, *map;
 
@@ -69,7 +68,7 @@ volatile unsigned *ws2812b::mapRegisterMemory(int base) {
 
 // set up a memory regions to access GPIO, PWM and the clock manager
 
-void ws2812b::setupRegisterMemoryMappings() {
+void WS2812b::setupRegisterMemoryMappings() {
     gpio = mapRegisterMemory(GPIO_BASE);
     pwm = mapRegisterMemory(PWM_BASE);
     clk = mapRegisterMemory(CLOCK_BASE);
@@ -78,9 +77,9 @@ void ws2812b::setupRegisterMemoryMappings() {
 
 // Zero out the PWM waveform buffer
 
-void ws2812b::clearPWMBuffer() {
+void WS2812b::clearPWMBuffer() {
     int i;
-    
+
     for (i = 0; i < PWM_WAVEFORM_LENGTH; i++) {
         PWMWaveform[i] = 0x00000000;
     }
@@ -88,7 +87,7 @@ void ws2812b::clearPWMBuffer() {
 
 // Zero out the LED buffer
 
-void ws2812b::clearLEDBuffer() {
+void WS2812b::clearLEDBuffer() {
     int i;
     for (i = 0; i < LED_BUFFER_LENGTH; i++) {
         LEDBuffer[i].r = 0;
@@ -99,13 +98,13 @@ void ws2812b::clearLEDBuffer() {
 
 // Start or stop PWM output
 
-void ws2812b::enablePWM(unsigned char state) {
+void WS2812b::enablePWM(unsigned char state) {
     *(pwm + PWM_CTL) |= (state << PWM_CTL_PWEN1);
 }
 
 // Is the FIFO empty?
 
-unsigned char ws2812b::FIFOEmpty() {
+unsigned char WS2812b::FIFOEmpty() {
     if (*(pwm + PWM_STA) & (1 << PWM_STA_EMPT1)) {
         return true;
     } else {
@@ -115,34 +114,41 @@ unsigned char ws2812b::FIFOEmpty() {
 
 // Turn r, g, and b into a Color_t struct
 
-Color_t ws2812b::RGB2Color(unsigned char r, unsigned char g, unsigned char b) {
+Color WS2812b::RGB2Color(unsigned char r, unsigned char g, unsigned char b) {
 
-    Color_t color = {r, g, b};
+    Color color = {r, g, b};
     return color;
 
 }
 
 // Set pixel color (24-bit color)
 
-void ws2812b::setPixelColor(unsigned int pixel, unsigned char r, unsigned char g, unsigned char b) {
+void WS2812b::setPixelColor(unsigned int pixel, unsigned char r, unsigned char g, unsigned char b) {
+
     if (pixel < 0) {
-        printf("Unable to set pixel %d (less than zero?)\n", pixel);
-        
+        throw std::runtime_error("Exception to set pixel");
     }
     if (pixel > LED_BUFFER_LENGTH - 1) {
-        
         throw std::runtime_error("Exception to set pixel");
-        
-    } else {
-        LEDBuffer[pixel] = RGB2Color(r, g, b);
-        
+
     }
+    LEDBuffer[pixel] = RGB2Color(r, g, b);
+
+
+}
+
+void WS2812b::setPixelColor(unsigned int pixel, Color color, float lum) {
+    color.b = color.b * lum;
+    color.g = color.g * lum;
+    color.r = color.r * lum;
+    LEDBuffer[pixel] = color;
+
 }
 
 
 // Set an individual bit in the PWM output array, accounting for word boundaries
 
-void ws2812b::setPWMBit(unsigned int bitPos, unsigned char bit) {
+void WS2812b::setPWMBit(unsigned int bitPos, unsigned char bit) {
 
     // Fetch word the bit is in
     unsigned int wordOffset = (int) (bitPos / 32);
@@ -161,7 +167,7 @@ void ws2812b::setPWMBit(unsigned int bitPos, unsigned char bit) {
 
 // Get an individual bit from the PWM output array, accounting for word boundaries
 
-unsigned char ws2812b::getPWMBit(unsigned int bitPos) {
+unsigned char WS2812b::getPWMBit(unsigned int bitPos) {
 
     // Fetch word the bit is in
     unsigned int wordOffset = (int) (bitPos / 32);
@@ -177,12 +183,12 @@ unsigned char ws2812b::getPWMBit(unsigned int bitPos) {
 
 // Reverse the bits in a word
 
-unsigned int ws2812b::reverseWord(unsigned int word) {
+unsigned int WS2812b::reverseWord(unsigned int word) {
 
     unsigned int output = 0;
-    
+
     for (int i = 0; i < 32; i++) {
-        
+
         output |= word & (1 << i) ? 1 : 0;
         if (i < 31) {
             output <<= 1;
@@ -195,7 +201,7 @@ unsigned int ws2812b::reverseWord(unsigned int word) {
 
 // Clear PWM errors (using SETBIT because you "clear" errors by writing a 1 to their bit positions)
 
-void ws2812b::clearPWMErrors() {
+void WS2812b::clearPWMErrors() {
     SETBIT(*(pwm + PWM_STA), PWM_STA_WERR1);
     SETBIT(*(pwm + PWM_STA), PWM_STA_RERR1);
     SETBIT(*(pwm + PWM_STA), PWM_STA_GAPO1);
@@ -204,14 +210,14 @@ void ws2812b::clearPWMErrors() {
 
 // Clear the PWM FIFO
 
-void ws2812b::clearFIFO() {
+void WS2812b::clearFIFO() {
     SETBIT(*(pwm + PWM_CTL), PWM_CTL_CLRF1);
 }
 
 
 // Initialize the PWM generator
 
-void ws2812b::initHardware() {
+void WS2812b::initHardware() {
     // mmap register space
     setupRegisterMemoryMappings();
 
@@ -277,7 +283,7 @@ void ws2812b::initHardware() {
 
 // Write the LED buffer to the PWM FIFO input, translating it into the WS2812 wire format
 
-void ws2812b::show() {
+void WS2812b::show() {
 
     // Set up PWM control registers
     unsigned int controlWord = 0x00000000;
@@ -297,9 +303,9 @@ void ws2812b::show() {
 
     unsigned int colorBits = 0; // Holds the GRB color before conversion to wire bit pattern
     unsigned char colorBit = 0; // Holds current bit out of colorBits to be processed
-    unsigned int wireBit = 0;   // Holds the current bit we will set in PWMWaveform
+    unsigned int wireBit = 0; // Holds the current bit we will set in PWMWaveform
 
-    for (i = 0; i < (int)numLEDs; i++) {
+    for (i = 0; i < (int) numLEDs; i++) {
 
         colorBits = ((unsigned int) LEDBuffer[i].r << 8) | ((unsigned int) LEDBuffer[i].g << 16) | LEDBuffer[i].b;
 
