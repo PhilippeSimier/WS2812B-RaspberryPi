@@ -139,32 +139,38 @@
 
 // LED buffer (this will be translated into pulses in PWMWaveform[])
 
-typedef struct Color {
+class Color {
+public:
+
+    Color();
+
+    Color(unsigned char red, unsigned char green, unsigned char blue);
+
+    Color(const Color& orig);
+
+    // Couleurs prédéfinies
+    static const Color Red;
+    static const Color Green;
+    static const Color Blue;
+    static const Color White;
+    static const Color Black;
+    static const Color Yellow;
+    static const Color Cyan;
+    static const Color Magenta;
+
     unsigned char r;
     unsigned char g;
     unsigned char b;
-} Color;
-
-// Définition de couleurs prédéfinies
-const Color RED = {255, 0, 0};
-const Color GREEN = {0, 255, 0};
-const Color BLUE = {0, 0, 255};
-const Color WHITE = {255, 255, 255};
-const Color BLACK = {0, 0, 0};
-const Color YELLOW = {255, 255, 0};
-const Color CYAN = {0, 255, 255};
-const Color MAGENTA = {255, 0, 255};
+};
 
 class WS2812b {
-    
-    
 public:
     WS2812b(unsigned int numLED);
-    
+
     void setPixelColor(unsigned int pixel, unsigned char r, unsigned char g, unsigned char b);
-    void setPixelColor(unsigned int pixel, Color color, float lum = 1.0 );
+    void setPixelColor(unsigned int pixel, Color color, float lum = 1.0);
     void show();
-    
+
 
 private:
     unsigned int numLEDs; // How many LEDs there are on the chain
@@ -187,7 +193,7 @@ private:
     void clearPWMBuffer();
     void enablePWM(unsigned char state);
     unsigned char FIFOEmpty();
-    Color RGB2Color(unsigned char r, unsigned char g, unsigned char b);   
+    Color RGB2Color(unsigned char r, unsigned char g, unsigned char b);
     void setPWMBit(unsigned int bitPos, unsigned char bit);
     unsigned char getPWMBit(unsigned int bitPos);
     unsigned int reverseWord(unsigned int word);
@@ -195,5 +201,7 @@ private:
     void clearFIFO();
 
 };
+
+
 
 #endif // WS2812B_H

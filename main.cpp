@@ -9,25 +9,37 @@
 #include "ws2812b.h"
 
 
+
 using namespace std;
 
 int main(int argc, char** argv) {
-    
-    Color couleur[8] = { RED, GREEN, BLUE, WHITE, BLACK, YELLOW, CYAN, MAGENTA };
-    
+
+    Color couleur[8] = {
+        Color::Red,
+        Color::Green,
+        Color::Blue,
+        Color::White,
+        Color::Black,
+        Color::Cyan,
+        Color::Yellow,
+        Color::Magenta
+    };
+
+
     try {
 
         WS2812b ledRGB(1); //1 pixel LED RGB
-        
         int i = 0;
+                
         while (1) {
-            //RGB Blink.
-            ledRGB.setPixelColor(0, couleur[i], 0.1); 
+            
+            ledRGB.setPixelColor(0, couleur[i], 0.1);
             ledRGB.show();
             sleep(3);
             i++;
-            if (i == 8) i=0;
+            if (i == 8) i = 0;
         }
+        
     } catch (const std::runtime_error &e) {
 
         cout << "Exception caught: " << e.what() << endl;

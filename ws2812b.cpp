@@ -7,6 +7,36 @@
 
 #include "ws2812b.h"
 
+Color::Color() :
+r(0),
+g(0),
+b(0) {
+}
+
+Color::Color(unsigned char red, unsigned char green, unsigned char blue) :
+r(red),
+g(green),
+b(blue) {
+}
+
+Color::Color(const Color& orig) {
+    r = orig.r;
+    g = orig.g;
+    b = orig.b;
+}
+
+// Définition des couleurs prédéfinies
+const Color Color::Red = Color(255, 0, 0);
+const Color Color::Green = Color(0, 255, 0);
+const Color Color::Blue = Color(0, 0, 255);
+const Color Color::White = Color(255, 255, 255);
+const Color Color::Black = Color(0, 0, 0);
+const Color Color::Yellow = Color(255, 255, 0);
+const Color Color::Cyan = Color(0, 255, 255);
+const Color Color::Magenta = Color(255, 0, 255);
+
+
+
 WS2812b::WS2812b(unsigned int numLED) :
 numLEDs(numLED) {
     if (numLED > LED_BUFFER_LENGTH) {
